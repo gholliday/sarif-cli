@@ -120,7 +120,7 @@ sarif-cli add bulk findings.jsonl results.sarif
 
 The model covers the SARIF v2.1.0 surface area observed across a corpus of
 real-world logs from common SAST tools. Concepts not yet modelled
-explicitly (e.g. `conversion`, `graphs`, `webRequests`, `taxonomies`)
+explicitly (e.g. `conversion`, `graphs`, `taxonomies`)
 still **survive round-trip** — they ride through the
 `AdditionalProperties` extension bag on each type — but can't be authored
 through dedicated CLI options. PRs welcome.

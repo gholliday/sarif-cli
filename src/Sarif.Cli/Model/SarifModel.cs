@@ -346,6 +346,21 @@ public sealed class Result
     [JsonPropertyName("fixes")]
     public List<Fix>? Fixes { get; set; }
 
+    [JsonPropertyName("suppressions")]
+    public List<Suppression>? Suppressions { get; set; }
+
+    [JsonPropertyName("webRequest")]
+    public WebRequest? WebRequest { get; set; }
+
+    [JsonPropertyName("webResponse")]
+    public WebResponse? WebResponse { get; set; }
+
+    [JsonPropertyName("attachments")]
+    public List<Attachment>? Attachments { get; set; }
+
+    [JsonPropertyName("workItemUris")]
+    public List<Uri>? WorkItemUris { get; set; }
+
     [JsonPropertyName("guid")]
     public string? Guid { get; set; }
 
@@ -919,10 +934,10 @@ public sealed class ThreadFlowLocation
     public string? Importance { get; set; }
 
     [JsonPropertyName("webRequest")]
-    public Dictionary<string, JsonElement>? WebRequest { get; set; }
+    public WebRequest? WebRequest { get; set; }
 
     [JsonPropertyName("webResponse")]
-    public Dictionary<string, JsonElement>? WebResponse { get; set; }
+    public WebResponse? WebResponse { get; set; }
 
     [JsonPropertyName("properties")]
     public Dictionary<string, JsonElement>? Properties { get; set; }
@@ -971,6 +986,118 @@ public sealed class Replacement
 
     [JsonPropertyName("insertedContent")]
     public ArtifactContent? InsertedContent { get; set; }
+
+    [JsonPropertyName("properties")]
+    public Dictionary<string, JsonElement>? Properties { get; set; }
+
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? AdditionalProperties { get; set; }
+}
+
+/// <summary>A suppression relevant to a result.</summary>
+public sealed class Suppression
+{
+    [JsonPropertyName("guid")]
+    public string? Guid { get; set; }
+
+    [JsonPropertyName("kind")]
+    public string Kind { get; set; } = "external";
+
+    [JsonPropertyName("status")]
+    public string? Status { get; set; }
+
+    [JsonPropertyName("justification")]
+    public string? Justification { get; set; }
+
+    [JsonPropertyName("location")]
+    public Location? Location { get; set; }
+
+    [JsonPropertyName("properties")]
+    public Dictionary<string, JsonElement>? Properties { get; set; }
+
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? AdditionalProperties { get; set; }
+}
+
+/// <summary>An HTTP request associated with a result or thread flow location.</summary>
+public sealed class WebRequest
+{
+    [JsonPropertyName("index")]
+    public int? Index { get; set; }
+
+    [JsonPropertyName("protocol")]
+    public string? Protocol { get; set; }
+
+    [JsonPropertyName("version")]
+    public string? Version { get; set; }
+
+    [JsonPropertyName("target")]
+    public string? Target { get; set; }
+
+    [JsonPropertyName("method")]
+    public string? Method { get; set; }
+
+    [JsonPropertyName("headers")]
+    public Dictionary<string, string>? Headers { get; set; }
+
+    [JsonPropertyName("parameters")]
+    public Dictionary<string, string>? Parameters { get; set; }
+
+    [JsonPropertyName("body")]
+    public ArtifactContent? Body { get; set; }
+
+    [JsonPropertyName("properties")]
+    public Dictionary<string, JsonElement>? Properties { get; set; }
+
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? AdditionalProperties { get; set; }
+}
+
+/// <summary>An HTTP response associated with a result or thread flow location.</summary>
+public sealed class WebResponse
+{
+    [JsonPropertyName("index")]
+    public int? Index { get; set; }
+
+    [JsonPropertyName("protocol")]
+    public string? Protocol { get; set; }
+
+    [JsonPropertyName("version")]
+    public string? Version { get; set; }
+
+    [JsonPropertyName("statusCode")]
+    public int? StatusCode { get; set; }
+
+    [JsonPropertyName("reasonPhrase")]
+    public string? ReasonPhrase { get; set; }
+
+    [JsonPropertyName("headers")]
+    public Dictionary<string, string>? Headers { get; set; }
+
+    [JsonPropertyName("body")]
+    public ArtifactContent? Body { get; set; }
+
+    [JsonPropertyName("noResponseReceived")]
+    public bool? NoResponseReceived { get; set; }
+
+    [JsonPropertyName("properties")]
+    public Dictionary<string, JsonElement>? Properties { get; set; }
+
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? AdditionalProperties { get; set; }
+}
+
+/// <summary>A file attached to a result.</summary>
+public sealed class Attachment
+{
+    [JsonPropertyName("description")]
+    public Message? Description { get; set; }
+
+    [JsonPropertyName("artifactLocation")]
+    public ArtifactLocation ArtifactLocation { get; set; } = new();
+
+    [JsonPropertyName("regions")]
+    public List<Region>? Regions { get; set; }
 
     [JsonPropertyName("properties")]
     public Dictionary<string, JsonElement>? Properties { get; set; }
