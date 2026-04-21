@@ -1,0 +1,126 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v0.2.0)'
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, rid: win-x64,    archive: zip,    ext: .exe }
+          - { os: windows-latest, rid: win-arm64,  archive: zip,    ext: .exe }
+          - { os: ubuntu-latest,  rid: linux-x64,  archive: tar.gz, ext: ''   }
+          - { os: ubuntu-latest,  rid: linux-arm64,archive: tar.gz, ext: ''   }
+          - { os: macos-latest,   rid: osx-x64,    archive: tar.gz, ext: ''   }
+          - { os: macos-latest,   rid: osx-arm64,  archive: tar.gz, ext: ''   }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Resolve version from tag
+        id: ver
+        shell: bash
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish AOT (${{ matrix.rid }})
+        shell: bash
+        run: |
+          dotnet publish src/Sarif.Cli -c Release -r ${{ matrix.rid }} \
+            -p:Version=${{ steps.ver.outputs.version }} \
+            -o publish/${{ matrix.rid }}
+
+      - name: Package
+        shell: bash
+        run: |
+          set -euo pipefail
+          NAME="sarif-cli-${{ steps.ver.outputs.version }}-${{ matrix.rid }}"
+          STAGE="stage/${NAME}"
+          mkdir -p "${STAGE}" dist
+          cp publish/${{ matrix.rid }}/sarif-cli${{ matrix.ext }} "${STAGE}/"
+          cp LICENSE README.md "${STAGE}/"
+          cd stage
+          if [ "${{ matrix.archive }}" = "zip" ]; then
+            7z a -tzip "../dist/${NAME}.zip" "${NAME}" >/dev/null
+          else
+            tar -czf "../dist/${NAME}.tar.gz" "${NAME}"
+          fi
+          cd ..
+          ( cd dist && shasum -a 256 "${NAME}.${{ matrix.archive }}" > "${NAME}.${{ matrix.archive }}.sha256" )
+
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v4
+        with:
+          name: dist-${{ matrix.rid }}
+          path: dist/*
+          retention-days: 5
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v4
+        with:
+          path: dist
+          pattern: dist-*
+          merge-multiple: true
+
+      - name: Resolve tag
+        id: ver
+        shell: bash
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          if [[ "${TAG}" == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create / update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG='${{ steps.ver.outputs.tag }}'
+          PRE='${{ steps.ver.outputs.prerelease }}'
+          FLAGS=()
+          [ "$PRE" = "true" ] && FLAGS+=(--prerelease)
+
+          NOTES="## sarif-cli ${TAG}
+
+          Native AOT binaries for Windows, Linux, and macOS (x64 + arm64).
+
+          Verify downloads against the matching \`*.sha256\` file."
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber dist/*
+          else
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "$TAG" --notes "$NOTES" "${FLAGS[@]}" dist/*
+          fi

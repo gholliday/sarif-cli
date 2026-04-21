@@ -1,0 +1,61 @@
+{
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false,
+  "editor.insertSpaces": true,
+  "editor.tabSize": 4,
+  "editor.detectIndentation": false,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.eol": "\n",
+
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/bin": true,
+    "**/obj": true,
+    "artifacts": true,
+    "nuget-inspect": true
+  },
+  "files.watcherExclude": {
+    "**/artifacts/**": true,
+    "**/bin/**": true,
+    "**/obj/**": true,
+    "**/nuget-inspect/**": true
+  },
+  "search.exclude": {
+    "**/artifacts": true,
+    "**/bin": true,
+    "**/obj": true,
+    "**/nuget-inspect": true,
+    "**/*.lock.json": true
+  },
+
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp",
+    "editor.tabSize": 4
+  },
+  "[markdown]": {
+    "editor.tabSize": 2,
+    "files.trimTrailingWhitespace": false
+  },
+  "[yaml]": {
+    "editor.tabSize": 2
+  },
+
+  "json.schemas": [
+    {
+      "fileMatch": ["*.sarif", "samples/*.sarif", "tests/**/*.sarif"],
+      "url": "https://json.schemastore.org/sarif-2.1.0.json"
+    }
+  ],
+
+  "dotnet.defaultSolution": "sarif.slnx"
+}

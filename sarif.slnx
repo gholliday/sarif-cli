@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src\Sarif.Cli\Sarif.Cli.csproj" />
+  <Project Path="tests\Sarif.Tests\Sarif.Tests.csproj" />
+</Solution>

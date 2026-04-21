@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "DemoAnalyzer",
+          "version": "0.1.0",
+          "informationUri": "https://example.com/demoanalyzer",
+          "rules": [
+            {
+              "id": "DEMO0001",
+              "name": "AvoidEmptyCatch",
+              "shortDescription": { "text": "Empty catch blocks hide errors." },
+              "fullDescription": { "text": "An empty catch block silently swallows exceptions, making bugs harder to diagnose." },
+              "defaultConfiguration": { "level": "warning" },
+              "helpUri": "https://example.com/rules/DEMO0001"
+            },
+            {
+              "id": "DEMO0002",
+              "name": "PreferReadOnlyCollections",
+              "shortDescription": { "text": "Prefer read-only collection types in public APIs." },
+              "defaultConfiguration": { "level": "note" }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "DEMO0001",
+          "ruleIndex": 0,
+          "level": "warning",
+          "message": { "text": "Catch block on line 42 swallows all exceptions." },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "src/Foo.cs" },
+                "region": {
+                  "startLine": 42,
+                  "startColumn": 9,
+                  "endLine": 44,
+                  "endColumn": 10,
+                  "snippet": { "text": "catch { }" }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "DEMO0002",
+          "ruleIndex": 1,
+          "level": "note",
+          "message": { "text": "Public property 'Items' exposes a mutable List<T>." },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "src/Bar.cs" },
+                "region": { "startLine": 17 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
