@@ -68,7 +68,7 @@ internal static class MergeCommand
 
             SarifFile.Save(merged, output.FullName);
             int totalResults = merged.Runs.Sum(r => r.Results?.Count ?? 0);
-            AnsiConsole.MarkupLine($"[green]Merged[/] {inputs.Length} file(s) → {merged.Runs.Count} run(s), {totalResults} result(s) → {Markup.Escape(output.FullName)}");
+            AnsiConsole.MarkupLine($"[green]Merged[/] {inputs.Length} file(s) -> {merged.Runs.Count} run(s), {totalResults} result(s) -> {Markup.Escape(output.FullName)}");
             return 0;
         });
         return cmd;

@@ -92,6 +92,11 @@ sarif-cli validate results.sarif --strict   # exit 2 on authoring slips
 
 # Combine logs (concat semantics — leave richer merging to Sarif.Multitool).
 sarif-cli merge a.sarif b.sarif --output combined.sarif
+
+# Bulk-author from a JSONL source-of-truth file (one rule/result per line):
+#   {"kind":"rule","id":"R1","name":"Foo","defaultLevel":"error","tags":["sec"]}
+#   {"kind":"result","ruleId":"R1","message":"...","file":"src/a.cs","startLine":10}
+sarif-cli add bulk findings.jsonl results.sarif
 ```
 
 `sarif-cli examples` prints the same recipe at any time.
@@ -106,6 +111,7 @@ sarif-cli merge a.sarif b.sarif --output combined.sarif
 | `list results <file>`     | List results; `--rule-id <id>` filter, `--format`    |
 | `add rule <file> ...`     | Add a rule; `--tag`, `--security-severity`, `--cvss`, `--property` |
 | `add result <file> ...`   | Add a result; `--rule-id` or `--rule-index`, `--uri-base-id`, `--property` |
+| `add bulk <jsonl> <file>` | Bulk-import rules/results from a JSON-Lines file (`--continue-on-error`) |
 | `validate <file>`         | Smoke-test + warn on unresolved ruleIds / empty URIs (`--strict`) |
 | `merge <inputs>... -o <f>`| Concatenate the runs from multiple SARIF files       |
 | `examples`                | Print a worked end-to-end example                    |

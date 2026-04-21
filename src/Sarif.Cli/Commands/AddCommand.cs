@@ -12,6 +12,7 @@ internal static class AddCommand
         var addCmd = new Command("add", "Add elements (rules, results) to a SARIF log.");
         addCmd.Add(CreateAddRuleCommand());
         addCmd.Add(CreateAddResultCommand());
+        addCmd.Add(BulkCommand.Create());
         return addCmd;
     }
 

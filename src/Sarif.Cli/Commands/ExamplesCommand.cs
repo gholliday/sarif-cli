@@ -47,6 +47,14 @@ internal static class ExamplesCommand
             AnsiConsole.MarkupLine("[dim]# 5. Combine logs (concat semantics).[/]");
             AnsiConsole.WriteLine("sarif-cli merge a.sarif b.sarif --output combined.sarif");
             AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine("[dim]# 6. Bulk-import from a JSONL file (one rule/result per line).[/]");
+            AnsiConsole.MarkupLine("[dim]#    Great for regenerating a log from a source-of-truth (SQL, .csv, etc).[/]");
+            AnsiConsole.WriteLine("cat <<'JSONL' > findings.jsonl");
+            AnsiConsole.WriteLine("{\"kind\":\"rule\",\"id\":\"MA0001\",\"name\":\"AvoidEmptyCatch\",\"defaultLevel\":\"warning\",\"tags\":[\"security\"],\"securitySeverity\":\"8.5\"}");
+            AnsiConsole.WriteLine("{\"kind\":\"result\",\"ruleId\":\"MA0001\",\"message\":\"Catch swallows exceptions.\",\"file\":\"src/Foo.cs\",\"uriBaseId\":\"SRCROOT\",\"startLine\":42}");
+            AnsiConsole.WriteLine("JSONL");
+            AnsiConsole.WriteLine("sarif-cli add bulk findings.jsonl results.sarif");
+            AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine("[bold underline]Validation, merging, conversion[/]");
             AnsiConsole.MarkupLine("This CLI focuses on [italic]authoring[/]. For schema validation, merging, conversion from");
             AnsiConsole.MarkupLine("other tools' output, querying, and rebasing URIs, install the official Microsoft tool:");

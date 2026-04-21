@@ -141,6 +141,34 @@ internal static class ListCommand
                 return 0;
             }
 
+            // Build a rule lookup so we can compute the *effective* level for each result.
+            // Per SARIF: result.level overrides rule.defaultConfiguration.level; if neither is
+            // present the SARIF default is "warning".
+            var driverRules = run.Tool.Driver.Rules ?? new List<ReportingDescriptor>();
+            var rulesById = new Dictionary<string, ReportingDescriptor>(StringComparer.Ordinal);
+            foreach (var rule in driverRules)
+            {
+                if (!string.IsNullOrEmpty(rule.Id)) rulesById.TryAdd(rule.Id, rule);
+            }
+
+            string EffectiveLevel(Result r)
+            {
+                if (r.Level is FailureLevel explicitLevel)
+                    return explicitLevel.ToString().ToLowerInvariant();
+
+                ReportingDescriptor? rule = null;
+                if (r.RuleIndex is int ruleIdx && ruleIdx >= 0 && ruleIdx < driverRules.Count)
+                    rule = driverRules[ruleIdx];
+                else
+                {
+                    var rid = r.RuleId ?? r.Rule?.Id;
+                    if (rid is not null) rulesById.TryGetValue(rid, out rule);
+                }
+
+                return (rule?.DefaultConfiguration?.Level ?? FailureLevel.Warning)
+                    .ToString().ToLowerInvariant();
+            }
+
             switch (format)
             {
                 case "json":
@@ -155,7 +183,7 @@ internal static class ListCommand
                             jw.WriteNumber("index", i);
                             var rid = r.RuleId ?? r.Rule?.Id;
                             if (rid is not null) jw.WriteString("ruleId", rid);
-                            jw.WriteString("level", (r.Level ?? FailureLevel.Warning).ToString().ToLowerInvariant());
+                            jw.WriteString("level", EffectiveLevel(r));
                             jw.WriteString("location", FormatLocation(r));
                             if (r.Message.Text is { } mt) jw.WriteString("message", mt);
                             jw.WriteEndObject();
@@ -170,7 +198,7 @@ internal static class ListCommand
                     for (int i = 0; i < results.Count; i++)
                     {
                         var r = results[i];
-                        Console.WriteLine($"{i}\t{r.RuleId ?? r.Rule?.Id ?? ""}\t{(r.Level ?? FailureLevel.Warning).ToString().ToLowerInvariant()}\t{TsvEscape(FormatLocation(r))}\t{TsvEscape(r.Message.Text)}");
+                        Console.WriteLine($"{i}\t{r.RuleId ?? r.Rule?.Id ?? ""}\t{EffectiveLevel(r)}\t{TsvEscape(FormatLocation(r))}\t{TsvEscape(r.Message.Text)}");
                     }
                     return 0;
 
@@ -188,7 +216,7 @@ internal static class ListCommand
                         table.AddRow(
                             i.ToString(),
                             Markup.Escape(r.RuleId ?? r.Rule?.Id ?? ""),
-                            Markup.Escape((r.Level ?? FailureLevel.Warning).ToString()),
+                            Markup.Escape(EffectiveLevel(r)),
                             Markup.Escape(FormatLocation(r)),
                             Markup.Escape(Truncate(r.Message.Text ?? "", 80)));
                     }
