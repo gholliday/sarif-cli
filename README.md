@@ -101,6 +101,39 @@ sarif-cli add bulk findings.jsonl results.sarif
 
 `sarif-cli examples` prints the same recipe at any time.
 
+### Experimental Dolt-backed working store
+
+The normal commands remain SARIF-file oriented. For workflows that want a
+versioned intermediate store and only export SARIF at the end, `sarif-cli db`
+can delegate to an optional `sarif-dolt` helper. This keeps the .NET CLI
+AOT-friendly while putting the embedded Dolt dependency in a small Go sidecar.
+
+Build the helper with Go 1.26.2+ and a CGO-capable C compiler from
+`tools\sarif-dolt`, then place it next to `sarif-cli`, on `PATH`, or set
+`SARIF_DOLT_HELPER`:
+
+```powershell
+cd tools\sarif-dolt
+$env:CGO_ENABLED = "1"
+go build -tags=gms_pure_go -o sarif-dolt.exe .
+
+sarif-cli db init --store .sarif-dolt --tool MyAnalyzer --uri-base SRCROOT=file:///c:/repo/
+sarif-cli db add-result --store .sarif-dolt --rule-id MA0001 --message "Finding text" --file src\Foo.cs --start-line 42
+sarif-cli db add-results --store .sarif-dolt --input findings.jsonl
+sarif-cli db commit --store .sarif-dolt --message "Add finding"
+sarif-cli db diff --store .sarif-dolt --from HEAD --to WORKING --format json
+sarif-cli db export --store .sarif-dolt --output results.sarif
+```
+
+`db add-results --input` reads JSONL with one result object per line. Fields
+mirror `db add-result` options: `ruleId`, `ruleName`, `message`, `level`,
+`file`, `uriBaseId`, `startLine`, `startColumn`, `endLine`, `endColumn`,
+`snippet`, `tags`, `properties`, `securitySeverity`, and `cvss`.
+
+`db diff` keeps the original table summary as the default. Use
+`--format text`, `--format json`, or `--format tsv` for row-level rule/result
+diffs that include result ids, rule ids, locations, and messages.
+
 ## Commands
 
 | Command                   | Purpose                                              |
@@ -112,6 +145,12 @@ sarif-cli add bulk findings.jsonl results.sarif
 | `add rule <file> ...`     | Add a rule; `--tag`, `--security-severity`, `--cvss`, `--property` |
 | `add result <file> ...`   | Add a result; `--rule-id` or `--rule-index`, `--uri-base-id`, `--property` |
 | `add bulk <jsonl> <file>` | Bulk-import rules/results from a JSON-Lines file (`--continue-on-error`) |
+| `db init ...`             | Initialize an optional Dolt-backed working store via `sarif-dolt` |
+| `db add-result ...`       | Add a result to the Dolt-backed working store        |
+| `db add-results ...`      | Batch-add results from JSONL to the Dolt-backed working store |
+| `db commit ...`           | Commit pending Dolt store changes                    |
+| `db diff ...`             | Show Dolt summary or row-level changes (`--format summary\|text\|json\|tsv`) |
+| `db export ...`           | Export the Dolt-backed working store to SARIF        |
 | `validate <file>`         | Smoke-test + warn on unresolved ruleIds / empty URIs (`--strict`) |
 | `merge <inputs>... -o <f>`| Concatenate the runs from multiple SARIF files       |
 | `examples`                | Print a worked end-to-end example                    |

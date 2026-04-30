@@ -26,3 +26,6 @@ artifacts/
 # Local scratch
 nuget-inspect/
 test-*.sarif
+.sarif-dolt/
+tools/sarif-dolt/sarif-dolt
+tools/sarif-dolt/sarif-dolt.exe

@@ -20,6 +20,7 @@ public static class CommandFactory
         rootCommand.Add(OpenCommand.Create());
         rootCommand.Add(ListCommand.Create());
         rootCommand.Add(AddCommand.Create());
+        rootCommand.Add(DbCommand.Create());
         rootCommand.Add(MergeCommand.Create());
         rootCommand.Add(ValidateCommand.Create());
         rootCommand.Add(ExamplesCommand.Create());
